@@ -67,15 +67,37 @@ def main():
     if not args.versions:
         versions = get_versions()[-20:]
 
+    changed_files = []
+    insertions = []
+    deletions = []
     for idx, v in enumerate(versions):
         if idx == 0:
             continue
         from_ = version_name(versions[idx - 1])
         to = version_name(v)
         from_to = '%s..%s' % (from_, to)
-        print(from_to)
         stat = gitcmd_str_output(['diff', '--shortstat', from_to])
-        print(stat)
+        # e.g., '127 files changed, 7926 insertions(+), 3954 deletions(-)'
+        stat_field = stat.split()
+        changed_files.append(int(stat_field[0]))
+        insertions.append(int(stat_field[3]))
+        deletions.append(int(stat_field[5]))
+
+        print('%20s: %10s files, %10s insertions, %10s deletions' % (
+            from_to, stat_field[0], stat_field[3], stat_field[5]))
+
+    print()
+    print('changed files (min, max, avg): %d, %d, %d' %
+            (min(changed_files), max(changed_files),
+                sum(changed_files) / len(changed_files)))
+
+    print('insertions (min, max, avg): %d, %d, %d' %
+            (min(insertions), max(insertions),
+                sum(insertions) / len(insertions)))
+
+    print('deletions (min, max, avg): %d, %d, %d' %
+            (min(deletions), max(deletions),
+                sum(deletions) / len(deletions)))
 
 if __name__ == '__main__':
     main()
