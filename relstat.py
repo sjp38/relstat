@@ -16,6 +16,11 @@ def cmd_str_output(cmd):
 def gitcmd_str_output(cmd):
     return cmd_str_output(git_cmd + cmd)
 
+def version_name(v):
+    if len(v) == 2:
+        return 'v%d.%d' % (v[0], v[1])
+    return 'v%d.%d-rc%d' % (v[0], v[1], v[2])
+
 def get_versions():
     versions_all = gitcmd_str_output(['tag']).split('\n')
 
@@ -40,15 +45,10 @@ def get_versions():
             if len(minors) == 2:
                 rc = int(minors[1], 10)
                 version_list.append(rc)
-            versions.append(version_list)
+            versions.append(version_name(version_list))
         except:
             continue
     return sorted(versions)
-
-def version_name(v):
-    if len(v) == 2:
-        return 'v%d.%d' % (v[0], v[1])
-    return 'v%d.%d-rc%d' % (v[0], v[1], v[2])
 
 def main():
     global git_cmd
@@ -64,7 +64,8 @@ def main():
         print('Wrong git directory \'%s\'' % args.gitdir)
     git_cmd = ['git', '--git-dir=%s' % args.gitdir]
 
-    if not args.versions:
+    versions = args.versions
+    if not versions:
         versions = get_versions()[-20:]
 
     changed_files = []
@@ -73,8 +74,8 @@ def main():
     for idx, v in enumerate(versions):
         if idx == 0:
             continue
-        from_ = version_name(versions[idx - 1])
-        to = version_name(v)
+        from_ = versions[idx - 1]
+        to = v
         from_to = '%s..%s' % (from_, to)
         stat = gitcmd_str_output(['diff', '--shortstat', from_to])
         # e.g., '127 files changed, 7926 insertions(+), 3954 deletions(-)'
