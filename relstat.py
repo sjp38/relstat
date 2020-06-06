@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
+import datetime
 import os
 import subprocess
 import sys
@@ -15,6 +16,11 @@ def cmd_str_output(cmd):
 
 def gitcmd_str_output(cmd):
     return cmd_str_output(git_cmd + cmd)
+
+def version_commit_date(v):
+    date = gitcmd_str_output(['log', '%s^..%s' % (v, v), '--pretty=%cd',
+        '--date=unix'])
+    return datetime.datetime.utcfromtimestamp(int(date))
 
 def version_name(v):
     if v[2] == 999:
@@ -94,8 +100,9 @@ def main():
         insertions.append(int(stat_field[3]))
         deletions.append(int(stat_field[5]))
 
-        print('%20s: %10s files, %10s insertions, %10s deletions' % (
-            from_to, stat_field[0], stat_field[3], stat_field[5]))
+        print('%20s (%s): %10s files, %10s insertions, %10s deletions' % (
+            from_to, version_commit_date(v).date(),
+            stat_field[0], stat_field[3], stat_field[5]))
 
     print()
     print('changed files (min, max, avg): %d, %d, %d' %
