@@ -78,6 +78,8 @@ def main():
     deletions = []
     for idx, v in enumerate(versions):
         if idx == 0:
+            print('%20s (%s): %10s files, %10s inserts, %10s deletes' % (
+                v, version_commit_date(v).date(), 0, 0, 0))
             continue
         from_ = versions[idx - 1]
         to = v
@@ -89,8 +91,8 @@ def main():
         insertions.append(int(stat_field[3]))
         deletions.append(int(stat_field[5]))
 
-        print('%20s (%s): %10s files, %10s insertions, %10s deletions' % (
-            from_to, version_commit_date(v).date(),
+        print('%20s (%s): %10s files, %10s inserts, %10s deletes' % (
+            v, version_commit_date(v).date(),
             stat_field[0], stat_field[3], stat_field[5]))
 
     print()
