@@ -6,7 +6,7 @@ import subprocess
 import sys
 
 def cmd_str_output(cmd):
-    output = subprocess.check_output(cmd)
+    output = subprocess.check_output(cmd, stderr=subprocess.DEVNULL)
     try:
         return output.decode('utf-8').strip()
     except UnicodeDecodeError as e:
@@ -36,17 +36,19 @@ def get_versions():
             continue
         try:
             minor_version = int(minors[0], 10)
+            version_list = [major_version, minor_version]
             if len(minors) == 2:
                 rc = int(minors[1], 10)
-                if rc >= 999:
-                    print('rc >= 999 makes no sense')
-                    exit(1)
-            else:
-                rc = 999
+                version_list.append(rc)
+            versions.append(version_list)
         except:
             continue
-        versions.append([major_version, minor_version, rc])
     return sorted(versions)
+
+def version_name(v):
+    if len(v) == 2:
+        return 'v%d.%d' % (v[0], v[1])
+    return 'v%d.%d-rc%d' % (v[0], v[1], v[2])
 
 def main():
     global git_cmd
@@ -65,8 +67,15 @@ def main():
     if not args.versions:
         versions = get_versions()
 
-    for v in versions:
-        print(v)
+    for idx, v in enumerate(versions):
+        if idx == 0:
+            continue
+        from_ = version_name(versions[idx - 1])
+        to = version_name(v)
+        from_to = '%s..%s' % (from_, to)
+        print(from_to)
+        stat = gitcmd_str_output(['diff', '--shortstat', from_to])
+        print(stat)
 
 if __name__ == '__main__':
     main()
