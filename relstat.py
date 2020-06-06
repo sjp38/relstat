@@ -22,11 +22,6 @@ def version_commit_date(v):
         '--date=unix'])
     return datetime.datetime.utcfromtimestamp(int(date))
 
-def version_name(v):
-    if v[2] == 999:
-        return 'v%d.%d' % (v[0], v[1])
-    return 'v%d.%d-rc%d' % (v[0], v[1], v[2])
-
 def get_versions():
     versions_all = gitcmd_str_output(['tag']).split('\n')
 
@@ -47,19 +42,12 @@ def get_versions():
             continue
         try:
             minor_version = int(minors[0], 10)
-            version_list = [major_version, minor_version]
             if len(minors) == 2:
                 rc = int(minors[1], 10)
-                if rc >= 999:
-                    print('rc version (%d) >=999' % rc)
-                    exit(-1)
-            else:
-                rc = 999
-            version_list.append(rc)
-            versions.append(version_list)
+            versions.append(version)
         except:
             continue
-    return [version_name(v) for v in sorted(versions)]
+    return versions
 
 def main():
     global git_cmd
@@ -83,6 +71,7 @@ def main():
         if args.nr_releases:
             nr_releases = args.nr_releases
         versions = get_versions()[-1 * nr_releases:]
+    versions = sorted(versions, key=lambda x: version_commit_date(x))
 
     changed_files = []
     insertions = []
