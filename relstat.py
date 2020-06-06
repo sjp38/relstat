@@ -65,7 +65,7 @@ def main():
     git_cmd = ['git', '--git-dir=%s' % args.gitdir]
 
     if not args.versions:
-        versions = get_versions()
+        versions = get_versions()[-20:]
 
     for idx, v in enumerate(versions):
         if idx == 0:
