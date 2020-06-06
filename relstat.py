@@ -58,6 +58,8 @@ def main():
             help='git directory of the project')
     parser.add_argument('--versions', metavar='<version>', nargs='+',
             help='versions to make stat')
+    parser.add_argument('--nr_releases', metavar='<number>', type=int,
+            help='number of latest releases to make statistics')
     args = parser.parse_args()
 
     if not os.path.isdir(args.gitdir) or not os.path.exists(args.gitdir):
@@ -66,7 +68,10 @@ def main():
 
     versions = args.versions
     if not versions:
-        versions = get_versions()[-20:]
+        nr_releases = 20
+        if args.nr_releases:
+            nr_releases = args.nr_releases
+        versions = get_versions()[-1 * nr_releases:]
 
     changed_files = []
     insertions = []
