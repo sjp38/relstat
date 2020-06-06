@@ -17,7 +17,7 @@ def gitcmd_str_output(cmd):
     return cmd_str_output(git_cmd + cmd)
 
 def version_name(v):
-    if len(v) == 2:
+    if v[2] == 999:
         return 'v%d.%d' % (v[0], v[1])
     return 'v%d.%d-rc%d' % (v[0], v[1], v[2])
 
@@ -44,11 +44,16 @@ def get_versions():
             version_list = [major_version, minor_version]
             if len(minors) == 2:
                 rc = int(minors[1], 10)
-                version_list.append(rc)
-            versions.append(version_name(version_list))
+                if rc >= 999:
+                    print('rc version (%d) >=999' % rc)
+                    exit(-1)
+            else:
+                rc = 999
+            version_list.append(rc)
+            versions.append(version_list)
         except:
             continue
-    return sorted(versions)
+    return [version_name(v) for v in sorted(versions)]
 
 def main():
     global git_cmd
