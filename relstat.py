@@ -93,6 +93,9 @@ def main():
     changed_files = []
     insertions = []
     deletions = []
+
+    print('%22s %10s %10s %10s %10s' %
+            ('version', 'files', 'inserts', 'deletes' ,'diff'))
     for idx, v in enumerate(versions):
         if idx == 0:
             from_ = v
@@ -130,7 +133,7 @@ def main():
         else:
             deletions.append(0)
 
-        print('%10s (%s): %10s files, %10s inserts, %10s deletes, %10s diff'
+        print('%10s(%s) %10s %10s %10s %10s'
                 % ( v, version_commit_date(v).date(),
                     changed_files[-1], insertions[-1], deletions[-1],
                     insertions[-1] + deletions[-1]))
@@ -141,18 +144,18 @@ def main():
     deletions = deletions[1:]
     diffs = [x + y for x,y in zip(insertions, deletions)]
 
-    print('%23s: %10.0f files, %10.0f inserts, %10.0f deletes, %10.0f diff' %
+    print('%22s %10.0f %10.0f %10.0f %10.0f' %
             ('avg', sum(changed_files) / len(changed_files),
                 sum(insertions) / len(insertions),
                 sum(deletions) / len(deletions),
                 sum(diffs) / len(diffs)))
-    print('%23s: %10s files, %10s inserts, %10s deletes, %10s diff' %
+    print('%22s %10s %10s %10s %10s' %
             ('min', min(changed_files), min(insertions), min(deletions),
                 min(diffs)))
-    print('%23s: %10s files, %10s inserts, %10s deletes, %10s diff' %
+    print('%22s %10s %10s %10s %10s' %
             ('max', max(changed_files), max(insertions), max(deletions),
                 max(diffs)))
-    print('%23s: %10s files, %10s inserts, %10s deletes, %10s diff' %
+    print('%22s %10s %10s %10s %10s' %
             ('total', sum(changed_files), sum(insertions), sum(deletions),
                 sum(diffs)))
 
