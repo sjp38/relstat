@@ -83,11 +83,12 @@ def main():
             before = datetime.datetime.strptime(args.before, '%Y-%m-%d')
         else:
             before = datetime.datetime.now()
-        nr_releases = 20
-        if args.nr_releases:
-            nr_releases = args.nr_releases
-        versions = get_versions(since, before)[-1 * nr_releases:]
+        versions = get_versions(since, before)
     versions = sorted(versions, key=lambda x: version_commit_date(x))
+
+    nr_releases = 20
+    if args.nr_releases:
+        nr_releases = args.nr_releases
 
     changed_files = []
     insertions = []
@@ -106,6 +107,10 @@ def main():
                 continue
         except:
             continue
+
+        if nr_releases == 0:
+            break
+        nr_releases -= 1
 
         stat = gitcmd_str_output(['diff', '--shortstat', from_to])
         # e.g., '127 files changed, 7926 insertions(+), 3954 deletions(-)'
