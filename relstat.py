@@ -65,6 +65,8 @@ def main():
             help='show stat of releases since this date')
     parser.add_argument('--before', metavar='<date (YYYY-MM-DD)>',
             help='show stat of releases before this date')
+    parser.add_argument('--extra_version', metavar='<extra version name>',
+            help='show stat for specific extra versions only')
     args = parser.parse_args()
 
     if not os.path.isdir(args.gitdir) or not os.path.exists(args.gitdir):
@@ -97,6 +99,13 @@ def main():
             from_ = versions[idx - 1]
         to = v
         from_to = '%s..%s' % (from_, to)
+
+        try:
+            extra_version = v.split('-')[1]
+            if args.extra_version and extra_version != args.extra_version:
+                continue
+        except:
+            continue
 
         stat = gitcmd_str_output(['diff', '--shortstat', from_to])
         # e.g., '127 files changed, 7926 insertions(+), 3954 deletions(-)'
