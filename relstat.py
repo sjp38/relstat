@@ -22,7 +22,7 @@ def version_commit_date(v):
         '--date=unix'])
     return datetime.datetime.utcfromtimestamp(int(date))
 
-def get_versions():
+def get_versions(since, before):
     versions_all = gitcmd_str_output(['tag']).split('\n')
 
     versions = []
@@ -44,7 +44,9 @@ def get_versions():
             minor_version = int(minors[0], 10)
             if len(minors) == 2:
                 rc = int(minors[1], 10)
-            versions.append(version)
+            cdate = version_commit_date(version)
+            if cdate > since and cdate < before:
+                versions.append(version)
         except:
             continue
     return versions
@@ -59,6 +61,10 @@ def main():
             help='versions to make stat')
     parser.add_argument('--nr_releases', metavar='<number>', type=int,
             help='number of latest releases to make statistics')
+    parser.add_argument('--since', metavar='<date (YYYY-MM-DD)>',
+            help='show stat of releases since this date')
+    parser.add_argument('--before', metavar='<date (YYYY-MM-DD)>',
+            help='show stat of releases before this date')
     args = parser.parse_args()
 
     if not os.path.isdir(args.gitdir) or not os.path.exists(args.gitdir):
@@ -67,10 +73,18 @@ def main():
 
     versions = args.versions
     if not versions:
+        if args.since:
+            since = datetime.datetime.strptime(args.since, '%Y-%m-%d')
+        else:
+            since = datetime.datetime.now() - datetime.timedelta(days=2 * 365)
+        if args.before:
+            before = datetime.datetime.strptime(args.before, '%Y-%m-%d')
+        else:
+            before = datetime.datetime.now()
         nr_releases = 20
         if args.nr_releases:
             nr_releases = args.nr_releases
-        versions = get_versions()[-1 * nr_releases:]
+        versions = get_versions(since, before)[-1 * nr_releases:]
     versions = sorted(versions, key=lambda x: version_commit_date(x))
 
     changed_files = []
@@ -84,16 +98,28 @@ def main():
         from_ = versions[idx - 1]
         to = v
         from_to = '%s..%s' % (from_, to)
+
         stat = gitcmd_str_output(['diff', '--shortstat', from_to])
         # e.g., '127 files changed, 7926 insertions(+), 3954 deletions(-)'
         stat_field = stat.split()
-        changed_files.append(int(stat_field[0]))
-        insertions.append(int(stat_field[3]))
-        deletions.append(int(stat_field[5]))
+        if len(stat_field) >= 3 and stat_field[1] == 'files':
+            changed_files.append(int(stat_field[0]))
+            stat_field = stat_field[3:]
+        else:
+            changed_files.append(0)
+        if len(stat_field) >= 2 and stat_field[1].startswith('insertions(+)'):
+            insertions.append(int(stat_field[0]))
+            stat_field = stat_field[2:]
+        else:
+            insertions.append(0)
+        if len(stat_field) == 2 and stat_field[1].startswith('deletions(-)'):
+            deletions.append(int(stat_field[0]))
+        else:
+            deletions.append(0)
 
         print('%20s (%s): %10s files, %10s inserts, %10s deletes' % (
             v, version_commit_date(v).date(),
-            stat_field[0], stat_field[3], stat_field[5]))
+            changed_files[-1], insertions[-1], deletions[-1]))
 
     print()
     print('changed files (min, max, avg): %d, %d, %d' %
