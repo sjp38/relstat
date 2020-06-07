@@ -145,18 +145,18 @@ def main():
     diffs = [x + y for x,y in zip(insertions, deletions)]
 
     print('%22s %10.0f %10.0f %10.0f %10.0f' %
-            ('avg', sum(changed_files) / len(changed_files),
+            ('# avg', sum(changed_files) / len(changed_files),
                 sum(insertions) / len(insertions),
                 sum(deletions) / len(deletions),
                 sum(diffs) / len(diffs)))
     print('%22s %10s %10s %10s %10s' %
-            ('min', min(changed_files), min(insertions), min(deletions),
+            ('# min', min(changed_files), min(insertions), min(deletions),
                 min(diffs)))
     print('%22s %10s %10s %10s %10s' %
-            ('max', max(changed_files), max(insertions), max(deletions),
+            ('# max', max(changed_files), max(insertions), max(deletions),
                 max(diffs)))
     print('%22s %10s %10s %10s %10s' %
-            ('total', sum(changed_files), sum(insertions), sum(deletions),
+            ('# total', sum(changed_files), sum(insertions), sum(deletions),
                 sum(diffs)))
 
 if __name__ == '__main__':
