@@ -76,7 +76,7 @@ def main():
         if args.since:
             since = datetime.datetime.strptime(args.since, '%Y-%m-%d')
         else:
-            since = datetime.datetime.now() - datetime.timedelta(days=2 * 365)
+            since = datetime.datetime.now() - datetime.timedelta(days=30 * 6)
         if args.before:
             before = datetime.datetime.strptime(args.before, '%Y-%m-%d')
         else:
