@@ -109,7 +109,8 @@ def main():
             if args.extra_version and extra_version != args.extra_version:
                 continue
         except:
-            continue
+            if args.extra_version:
+                continue
 
         if nr_releases == 0:
             break
