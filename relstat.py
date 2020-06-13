@@ -65,6 +65,8 @@ def main():
             help='show stat of releases before this date')
     parser.add_argument('--extra_version', metavar='<extra version name>',
             help='show stat for specific extra versions only')
+    parser.add_argument('--dateonly', action='store_true',
+            help='show release date only')
     args = parser.parse_args()
 
     if not os.path.isdir(args.gitdir) or not os.path.exists(args.gitdir):
@@ -124,9 +126,13 @@ def main():
         else:
             deletions.append(0)
 
-        print('%10s(%s) %10s %10s %10s %10s'
-                % ( v, version_commit_date(v).date(),
-                    changed_files[-1], deletions[-1], insertions[-1],
+        if args.dateonly:
+            version = '%22s' % version_commit_date(v).date()
+        else:
+            version = '%10s(%s)' % (v, version_commit_date(v).date())
+
+        print('%22s %10s %10s %10s %10s'
+                % (version, changed_files[-1], deletions[-1], insertions[-1],
                     insertions[-1] + deletions[-1]))
 
     # Remove first stats, as it is all zero
