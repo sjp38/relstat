@@ -22,6 +22,23 @@ def version_commit_date(v):
         '--date=unix']).split('\n')[0]
     return datetime.datetime.utcfromtimestamp(int(date))
 
+def get_stable_versions(major_version, since, before):
+    versions_all = gitcmd_str_output(['tag']).split('\n')
+
+    versions = []
+    for version in versions_all:
+        # '<major_version>.[0-9]+' are stable release
+        if not version.startswith(major_version + '.'):
+            continue
+        try:
+            stable_version_number = int(version[len(major_version) + 1:])
+        except:
+            continue
+        cdate = version_commit_date(version)
+        if cdate > since and cdate < before:
+            versions.append(version)
+    return versions
+
 def get_versions(since, before):
     versions_all = gitcmd_str_output(['tag']).split('\n')
 
@@ -65,6 +82,8 @@ def main():
             help='show stat of releases before this date')
     parser.add_argument('--extra_version', metavar='<extra version name>',
             help='show stat for specific extra versions only')
+    parser.add_argument('--stables', metavar='<major version name>',
+            help='show stat for stable releases of specific major version')
     parser.add_argument('--dateonly', action='store_true',
             help='show release date only')
     args = parser.parse_args()
@@ -83,11 +102,17 @@ def main():
             before = datetime.datetime.strptime(args.before, '%Y-%m-%d')
         else:
             before = datetime.datetime.now()
-        versions = get_versions(since, before)
-        master_date = version_commit_date('master')
-        if master_date > since and master_date < before:
-            versions.append('master')
+
+        if args.stables:
+            versions = get_stable_versions(args.stables, since, before)
+        else:
+            versions = get_versions(since, before)
+            master_date = version_commit_date('master')
+            if master_date > since and master_date < before:
+                versions.append('master')
     versions = sorted(versions, key=lambda x: version_commit_date(x))
+    if not versions:
+        exit()
 
     changed_files = []
     insertions = []
