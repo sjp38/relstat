@@ -19,7 +19,7 @@ def gitcmd_str_output(cmd):
 
 def version_commit_date(v):
     date = gitcmd_str_output(['log', '%s^..%s' % (v, v), '--pretty=%cd',
-        '--date=unix'])
+        '--date=unix']).split('\n')[0]
     return datetime.datetime.utcfromtimestamp(int(date))
 
 def get_versions(since, before):
@@ -84,6 +84,9 @@ def main():
         else:
             before = datetime.datetime.now()
         versions = get_versions(since, before)
+        master_date = version_commit_date('master')
+        if master_date > since and master_date < before:
+            versions.append('master')
     versions = sorted(versions, key=lambda x: version_commit_date(x))
 
     changed_files = []
