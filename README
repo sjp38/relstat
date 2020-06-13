@@ -46,4 +46,19 @@ example, the command on linux repo shows below output:
                # total      27066    1167953     573596    1741549
 ```
 
-You may also visualize the output using any plot tools.
+
+Visualization
+-------------
+
+You may also visualize the output using any plot tools.  For example, below
+gnuplot commands would be used.
+
+```
+set autoscale;
+set term pdf noenhanced;
+set output "plot.pdf";
+set xtics rotate by -90;
+set logscale y;
+plot for [i=0:3] "your_relstat.py_output" index i using 2:xtic(1)
+	with linespoints title columnheader(1);
+```
