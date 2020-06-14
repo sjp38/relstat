@@ -73,6 +73,8 @@ def set_argparser(parser):
             help='git directory of the project')
     parser.add_argument('--versions', metavar='<version>', nargs='+',
             help='versions to make stat')
+    parser.add_argument('--versions_file', metavar='<file>',
+            help='file containing the versions to make stat')
     parser.add_argument('--since', metavar='<date (YYYY-MM-DD)>',
             help='show stat of releases since this date')
     parser.add_argument('--before', metavar='<date (YYYY-MM-DD)>',
@@ -96,6 +98,14 @@ def main():
     git_cmd = ['git', '--git-dir=%s' % args.gitdir]
 
     versions = args.versions
+
+    if not versions and args.versions_file:
+        if not os.path.exists(args.versions_file):
+            print('Wrong versions file \'%s\'' % args.versions_file)
+            exit(1)
+        with open(args.versions_file, 'r') as f:
+            versions = [x.strip() for x in f.read().split('\n') if x]
+
     if not versions:
         if args.since:
             since = datetime.datetime.strptime(args.since, '%Y-%m-%d')
