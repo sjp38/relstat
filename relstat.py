@@ -211,6 +211,8 @@ def main():
 
     files_to_stat = args.files_to_stat
 
+    report_for = args.report_for
+
     stats_map = {}
 
     print('%22s %10s %10s %10s %10s' %
@@ -226,6 +228,9 @@ def main():
         except:
             if args.extra_version:
                 continue
+
+        if not args.report_for:
+            report_for = v
 
         stat = VersionStat(v, versions[idx - 1], files_to_stat)
         if not args.sortby:
@@ -268,8 +273,7 @@ def main():
                 sum(s.insertions for s in stats),
                 sum(s.diff for s in stats)))
 
-    report_for = args.report_for
-    if report_for and report_for in stats_map:
+    if report_for in stats_map:
         pr_report(stats_map[report_for], stats)
 
 if __name__ == '__main__':
