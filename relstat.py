@@ -91,6 +91,9 @@ def set_argparser(parser):
             help='show stat for specific extra versions only')
     parser.add_argument('--stables', metavar='<major version name>',
             help='show stat for stable releases of specific major version')
+    parser.add_argument('--files_to_stat', metavar='<file>', nargs='+',
+            help='files and/or directories to make stat for')
+
     parser.add_argument('--dateonly', action='store_true',
             help='show release date only')
 
@@ -136,6 +139,8 @@ def main():
     if not versions:
         exit()
 
+    files_to_stat = args.files_to_stat
+
     changed_files = []
     insertions = []
     deletions = []
@@ -158,7 +163,10 @@ def main():
             if args.extra_version:
                 continue
 
-        stat = gitcmd_str_output(['diff', '--shortstat', from_to])
+        stat_options = ['diff', '--shortstat', from_to]
+        if files_to_stat:
+            stat_options += ['--'] + files_to_stat
+        stat = gitcmd_str_output(stat_options)
         # e.g., '127 files changed, 7926 insertions(+), 3954 deletions(-)'
         stat_field = stat.split()
         if len(stat_field) >= 3 and stat_field[1] == 'files':
