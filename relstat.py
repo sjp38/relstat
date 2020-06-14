@@ -68,10 +68,7 @@ def get_versions(since, before):
             continue
     return versions
 
-def main():
-    global git_cmd
-
-    parser = argparse.ArgumentParser()
+def set_argparser(parser):
     parser.add_argument('--gitdir', metavar='<dir>', default='./.git',
             help='git directory of the project')
     parser.add_argument('--versions', metavar='<version>', nargs='+',
@@ -86,6 +83,12 @@ def main():
             help='show stat for stable releases of specific major version')
     parser.add_argument('--dateonly', action='store_true',
             help='show release date only')
+
+def main():
+    global git_cmd
+
+    parser = argparse.ArgumentParser()
+    set_argparser(parser)
     args = parser.parse_args()
 
     if not os.path.isdir(args.gitdir) or not os.path.exists(args.gitdir):
