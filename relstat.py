@@ -163,6 +163,9 @@ def set_argparser(parser):
             help='show release date only')
     parser.add_argument('--report_for', metavar='<version>',
             help='print brief report for the version')
+    parser.add_argument('--sortby',
+            choices=['files', 'deletions', 'insertions', 'diff'],
+            help='sort stat with the given key')
 
 def main():
     global git_cmd
@@ -225,10 +228,24 @@ def main():
                 continue
 
         stat = VersionStat(v, versions[idx - 1], files_to_stat)
-        stat.pr_stat(args.dateonly)
+        if not args.sortby:
+            stat.pr_stat(args.dateonly)
         stats_map[v] = stat
 
     stats = list(stats_map.values())
+
+    if args.sortby:
+        if args.sortby == 'changed_files':
+            stats = sorted(stats, key=lambda x: x.changed_files)
+        elif args.sortby == 'insertions':
+            stats = sorted(stats, key=lambda x: x.insertions)
+        elif args.sortby == 'deletions':
+            stats = sorted(stats, key=lambda x: x.deletions)
+        elif args.sortby == 'diff':
+            stats = sorted(stats, key=lambda x: x.diff)
+        for s in stats:
+            s.pr_stat(args.dateonly)
+
     nr_stats = len(stats)
     print('%22s %10.0f %10.0f %10.0f %10.0f' %
             ('# avg', sum(s.changed_files for s in stats) / nr_stats,
