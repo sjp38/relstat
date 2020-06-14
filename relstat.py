@@ -128,16 +128,17 @@ def get_versions(since, before):
             continue
     return versions
 
-def pr_report(version, changed_files, insertions, deletions, diffs):
-    nr_versions = len(changed_files)
-    print('# Among the %d releases, %s has' % (nr_versions, version))
-    order = sorted(list(changed_files.values())).index(changed_files[version])
+def pr_report(stat, stats):
+    nr_versions = len(stats)
+    print('# Among the %d releases, %s has' % (nr_versions, stat.version))
+
+    order = sorted(stats, key=lambda x: x.changed_files).index(stat)
     print('#    %dth smallest file changes' % order)
-    order = sorted(list(insertions.values())).index(insertions[version])
+    order = sorted(stats, key=lambda x: x.insertions).index(stat)
     print('#    %dth smallest insertions' % order)
-    order = sorted(list(deletions.values())).index(deletions[version])
+    order = sorted(stats, key=lambda x: x.deletions).index(stat)
     print('#    %dth smallest deletions' % order)
-    order = sorted(list(diffs.values())).index(diffs[version])
+    order = sorted(stats, key=lambda x: x.diff).index(stat)
     print('#    %dth smallest diffs' % order)
 
 def set_argparser(parser):
@@ -207,20 +208,13 @@ def main():
 
     files_to_stat = args.files_to_stat
 
-    changed_files = {}
-    insertions = {}
-    deletions = {}
-    diffs = {}
+    stats_map = {}
 
     print('%22s %10s %10s %10s %10s' %
             ('version', 'files', 'deletions', 'insertions', 'diff'))
     for idx, v in enumerate(versions):
         if idx == 0:
-            from_ = v
-        else:
-            from_ = versions[idx - 1]
-        to = v
-        from_to = '%s..%s' % (from_, to)
+            continue
 
         try:
             extra_version = v.split('-')[1]
@@ -231,38 +225,35 @@ def main():
                 continue
 
         stat = VersionStat(v, versions[idx - 1], files_to_stat)
-        changed_files[v] = stat.changed_files
-        insertions[v] = stat.insertions
-        deletions[v] = stat.deletions
-        diffs[v] = stat.diff
-
         stat.pr_stat(args.dateonly)
+        stats_map[v] = stat
 
-    # Remove first stats, as it is all zero
-    if versions[0] in changed_files:
-        del changed_files[versions[0]]
-        del insertions[versions[0]]
-        del deletions[versions[0]]
-        del diffs[versions[0]]
-
+    stats = list(stats_map.values())
+    nr_stats = len(stats)
     print('%22s %10.0f %10.0f %10.0f %10.0f' %
-            ('# avg', sum(changed_files.values()) / len(changed_files),
-                sum(deletions.values()) / len(deletions),
-                sum(insertions.values()) / len(insertions),
-                sum(diffs.values()) / len(diffs)))
-    print('%22s %10s %10s %10s %10s' %
-            ('# min', min(changed_files.values()), min(deletions.values()),
-                min(insertions.values()), min(diffs.values())))
-    print('%22s %10s %10s %10s %10s' %
-            ('# max', max(changed_files.values()), max(deletions.values()),
-                max(insertions.values()), max(diffs.values())))
-    print('%22s %10s %10s %10s %10s' %
-            ('# total', sum(changed_files.values()), sum(deletions.values()),
-                sum(insertions.values()), sum(diffs.values())))
+            ('# avg', sum(s.changed_files for s in stats) / nr_stats,
+                sum(s.deletions for s in stats) / nr_stats,
+                sum(s.insertions for s in stats) / nr_stats,
+                sum(s.diff for s in stats) / nr_stats))
+    print('%22s %10.0f %10.0f %10.0f %10.0f' %
+            ('# min', min(s.changed_files for s in stats),
+                min(s.deletions for s in stats),
+                min(s.insertions for s in stats),
+                min(s.diff for s in stats)))
+    print('%22s %10.0f %10.0f %10.0f %10.0f' %
+            ('# max', max(s.changed_files for s in stats),
+                max(s.deletions for s in stats),
+                max(s.insertions for s in stats),
+                max(s.diff for s in stats)))
+    print('%22s %10.0f %10.0f %10.0f %10.0f' %
+            ('# total', sum(s.changed_files for s in stats),
+                sum(s.deletions for s in stats),
+                sum(s.insertions for s in stats),
+                sum(s.diff for s in stats)))
 
     report_for = args.report_for
-    if report_for and report_for in changed_files:
-        pr_report(report_for, changed_files, insertions, deletions, diffs)
+    if report_for and report_for in stats_map:
+        pr_report(stats_map[report_for], stats)
 
 if __name__ == '__main__':
     main()
