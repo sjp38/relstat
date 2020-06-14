@@ -6,6 +6,58 @@ import os
 import subprocess
 import sys
 
+class VersionStat:
+    version = None
+    prev_version = None
+    files_to_stat = None
+    changed_files = None
+    deletions = None
+    insertions = None
+    diff = None
+
+    def __init__(self, version, prev_version, files_to_stat):
+        self.version = version
+        self.prev_version = prev_version
+        self.files_to_stat = files_to_stat
+
+        self.set_stat()
+
+    def set_stat(self):
+        commit_range = '%s..%s' % (self.prev_version, self.version)
+        stat_options = ['diff', '--shortstat', commit_range]
+        if self.files_to_stat:
+            stat_options += ['--'] + self.files_to_stat
+        stat = gitcmd_str_output(stat_options)
+
+        # e.g., '127 files changed, 7926 insertions(+), 3954 deletions(-)'
+        stat_field = stat.split()
+        if len(stat_field) >= 3 and stat_field[1] == 'files':
+            self.changed_files = int(stat_field[0])
+            stat_field = stat_field[3:]
+        else:
+            self.changed_files = 0
+        if len(stat_field) >= 2 and stat_field[1].startswith('insertions(+)'):
+            self.insertions = int(stat_field[0])
+            stat_field = stat_field[2:]
+        else:
+            self.insertions = 0
+        if len(stat_field) == 2 and stat_field[1].startswith('deletions(-)'):
+            self.deletions = int(stat_field[0])
+        else:
+            self.deletions = 0
+        self.diff = self.insertions + self.deletions
+
+    def pr_stat(self, dateonly):
+        commit_date = version_commit_date(self.version)
+        if dateonly:
+            version = commit_date.date()
+        else:
+            version = '%s(%s)' % (self.version, commit_date.date())
+
+        print('%22s %10s %10s %10s %10s'
+                % (version, self.changed_files, self.deletions,
+                    self.insertions, self.diff))
+
 def cmd_str_output(cmd):
     output = subprocess.check_output(cmd, stderr=subprocess.DEVNULL)
     try:
@@ -178,36 +230,13 @@ def main():
             if args.extra_version:
                 continue
 
-        stat_options = ['diff', '--shortstat', from_to]
-        if files_to_stat:
-            stat_options += ['--'] + files_to_stat
-        stat = gitcmd_str_output(stat_options)
-        # e.g., '127 files changed, 7926 insertions(+), 3954 deletions(-)'
-        stat_field = stat.split()
-        if len(stat_field) >= 3 and stat_field[1] == 'files':
-            changed_files[v] = int(stat_field[0])
-            stat_field = stat_field[3:]
-        else:
-            changed_files[v] = 0
-        if len(stat_field) >= 2 and stat_field[1].startswith('insertions(+)'):
-            insertions[v] = int(stat_field[0])
-            stat_field = stat_field[2:]
-        else:
-            insertions[v] = 0
-        if len(stat_field) == 2 and stat_field[1].startswith('deletions(-)'):
-            deletions[v] = int(stat_field[0])
-        else:
-            deletions[v] = 0
-        diffs[v] = insertions[v] + deletions[v]
+        stat = VersionStat(v, versions[idx - 1], files_to_stat)
+        changed_files[v] = stat.changed_files
+        insertions[v] = stat.insertions
+        deletions[v] = stat.deletions
+        diffs[v] = stat.diff
 
-        if args.dateonly:
-            version = '%22s' % version_commit_date(v).date()
-        else:
-            version = '%10s(%s)' % (v, version_commit_date(v).date())
-
-        print('%22s %10s %10s %10s %10s'
-                % (version, changed_files[v], deletions[v], insertions[v],
-                    insertions[v] + deletions[v]))
+        stat.pr_stat(args.dateonly)
 
     # Remove first stats, as it is all zero
     if versions[0] in changed_files:
