@@ -22,6 +22,14 @@ def version_commit_date(v):
         '--date=unix']).split('\n')[0]
     return datetime.datetime.utcfromtimestamp(int(date))
 
+def is_valid_version(v):
+    try:
+        date = gitcmd_str_output(['log', '%s^..%s' % (v, v), '--pretty=%cd',
+            '--date=unix']).split('\n')[0]
+    except subprocess.CalledProcessError:
+        return False
+    return True
+
 def get_stable_versions(major_version, since, before):
     versions_all = gitcmd_str_output(['tag']).split('\n')
 
@@ -104,7 +112,7 @@ def main():
             print('Wrong versions file \'%s\'' % args.versions_file)
             exit(1)
         with open(args.versions_file, 'r') as f:
-            versions = [x.strip() for x in f.read().split('\n') if x]
+            versions = [x.strip() for x in f.read().split('\n')]
 
     if not versions:
         if args.since:
@@ -123,6 +131,7 @@ def main():
             master_date = version_commit_date('master')
             if master_date > since and master_date < before:
                 versions.append('master')
+    versions = [v for v in versions if is_valid_version(v)]
     versions = sorted(versions, key=lambda x: version_commit_date(x))
     if not versions:
         exit()
