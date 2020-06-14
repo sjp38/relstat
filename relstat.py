@@ -76,6 +76,22 @@ def get_versions(since, before):
             continue
     return versions
 
+def pr_report(version, changed_files, insertions, deletions, diffs):
+    print('# %s is' % version)
+    nr_versions = len(changed_files)
+    order = sorted(list(changed_files.values())).index(changed_files[version])
+    print('#    %dth biggest (%dth smallest) file changes' %
+            (nr_versions - order, order))
+    order = sorted(list(insertions.values())).index(insertions[version])
+    print('#    %dth biggest (%dth smallest) insertions' %
+            (nr_versions - order, order))
+    order = sorted(list(deletions.values())).index(deletions[version])
+    print('#    %dth biggest (%dth smallest) deletions' %
+            (nr_versions - order, order))
+    order = sorted(list(diffs.values())).index(diffs[version])
+    print('#    %dth biggest (%dth smallest) diffs ' %
+            (nr_versions - order, order))
+
 def set_argparser(parser):
     parser.add_argument('--gitdir', metavar='<dir>', default='./.git',
             help='git directory of the project')
@@ -96,6 +112,8 @@ def set_argparser(parser):
 
     parser.add_argument('--dateonly', action='store_true',
             help='show release date only')
+    parser.add_argument('--report_for', metavar='<version>',
+            help='print brief report for the version')
 
 def main():
     global git_cmd
@@ -216,6 +234,10 @@ def main():
     print('%22s %10s %10s %10s %10s' %
             ('# total', sum(changed_files.values()), sum(deletions.values()),
                 sum(insertions.values()), sum(diffs.values())))
+
+    report_for = args.report_for
+    if report_for and report_for in changed_files:
+        pr_report(report_for, changed_files, insertions, deletions, diffs)
 
 if __name__ == '__main__':
     main()
