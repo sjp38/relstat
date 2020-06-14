@@ -141,9 +141,10 @@ def main():
 
     files_to_stat = args.files_to_stat
 
-    changed_files = []
-    insertions = []
-    deletions = []
+    changed_files = {}
+    insertions = {}
+    deletions = {}
+    diffs = {}
 
     print('%22s %10s %10s %10s %10s' %
             ('version', 'files', 'deletions', 'insertions', 'diff'))
@@ -170,19 +171,20 @@ def main():
         # e.g., '127 files changed, 7926 insertions(+), 3954 deletions(-)'
         stat_field = stat.split()
         if len(stat_field) >= 3 and stat_field[1] == 'files':
-            changed_files.append(int(stat_field[0]))
+            changed_files[v] = int(stat_field[0])
             stat_field = stat_field[3:]
         else:
-            changed_files.append(0)
+            changed_files[v] = 0
         if len(stat_field) >= 2 and stat_field[1].startswith('insertions(+)'):
-            insertions.append(int(stat_field[0]))
+            insertions[v] = int(stat_field[0])
             stat_field = stat_field[2:]
         else:
-            insertions.append(0)
+            insertions[v] = 0
         if len(stat_field) == 2 and stat_field[1].startswith('deletions(-)'):
-            deletions.append(int(stat_field[0]))
+            deletions[v] = int(stat_field[0])
         else:
-            deletions.append(0)
+            deletions[v] = 0
+        diffs[v] = insertions[v] + deletions[v]
 
         if args.dateonly:
             version = '%22s' % version_commit_date(v).date()
@@ -190,29 +192,30 @@ def main():
             version = '%10s(%s)' % (v, version_commit_date(v).date())
 
         print('%22s %10s %10s %10s %10s'
-                % (version, changed_files[-1], deletions[-1], insertions[-1],
-                    insertions[-1] + deletions[-1]))
+                % (version, changed_files[v], deletions[v], insertions[v],
+                    insertions[v] + deletions[v]))
 
     # Remove first stats, as it is all zero
-    changed_files = changed_files[1:]
-    insertions = insertions[1:]
-    deletions = deletions[1:]
-    diffs = [x + y for x,y in zip(insertions, deletions)]
+    if versions[0] in changed_files:
+        del changed_files[versions[0]]
+        del insertions[versions[0]]
+        del deletions[versions[0]]
+        del diffs[versions[0]]
 
     print('%22s %10.0f %10.0f %10.0f %10.0f' %
-            ('# avg', sum(changed_files) / len(changed_files),
-                sum(deletions) / len(deletions),
-                sum(insertions) / len(insertions),
-                sum(diffs) / len(diffs)))
+            ('# avg', sum(changed_files.values()) / len(changed_files),
+                sum(deletions.values()) / len(deletions),
+                sum(insertions.values()) / len(insertions),
+                sum(diffs.values()) / len(diffs)))
     print('%22s %10s %10s %10s %10s' %
-            ('# min', min(changed_files), min(deletions), min(insertions),
-                min(diffs)))
+            ('# min', min(changed_files.values()), min(deletions.values()),
+                min(insertions.values()), min(diffs.values())))
     print('%22s %10s %10s %10s %10s' %
-            ('# max', max(changed_files), max(deletions), max(insertions),
-                max(diffs)))
+            ('# max', max(changed_files.values()), max(deletions.values()),
+                max(insertions.values()), max(diffs.values())))
     print('%22s %10s %10s %10s %10s' %
-            ('# total', sum(changed_files), sum(deletions), sum(insertions),
-                sum(diffs)))
+            ('# total', sum(changed_files.values()), sum(deletions.values()),
+                sum(insertions.values()), sum(diffs.values())))
 
 if __name__ == '__main__':
     main()
