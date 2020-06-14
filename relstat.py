@@ -132,13 +132,13 @@ def pr_report(stat, stats):
     nr_versions = len(stats)
     print('# Among the %d releases, %s has' % (nr_versions, stat.version))
 
-    order = sorted(stats, key=lambda x: x.changed_files).index(stat)
+    order = sorted(stats, key=lambda x: x.changed_files).index(stat) + 1
     print('#    %dth smallest file changes' % order)
-    order = sorted(stats, key=lambda x: x.insertions).index(stat)
+    order = sorted(stats, key=lambda x: x.insertions).index(stat) + 1
     print('#    %dth smallest insertions' % order)
-    order = sorted(stats, key=lambda x: x.deletions).index(stat)
+    order = sorted(stats, key=lambda x: x.deletions).index(stat) + 1
     print('#    %dth smallest deletions' % order)
-    order = sorted(stats, key=lambda x: x.diff).index(stat)
+    order = sorted(stats, key=lambda x: x.diff).index(stat) + 1
     print('#    %dth smallest diffs' % order)
 
 def set_argparser(parser):
