@@ -77,20 +77,16 @@ def get_versions(since, before):
     return versions
 
 def pr_report(version, changed_files, insertions, deletions, diffs):
-    print('# %s is' % version)
     nr_versions = len(changed_files)
+    print('# Among the %d releases, %s has' % (nr_versions, version))
     order = sorted(list(changed_files.values())).index(changed_files[version])
-    print('#    %dth biggest (%dth smallest) file changes' %
-            (nr_versions - order, order))
+    print('#    %dth smallest file changes' % order)
     order = sorted(list(insertions.values())).index(insertions[version])
-    print('#    %dth biggest (%dth smallest) insertions' %
-            (nr_versions - order, order))
+    print('#    %dth smallest insertions' % order)
     order = sorted(list(deletions.values())).index(deletions[version])
-    print('#    %dth biggest (%dth smallest) deletions' %
-            (nr_versions - order, order))
+    print('#    %dth smallest deletions' % order)
     order = sorted(list(diffs.values())).index(diffs[version])
-    print('#    %dth biggest (%dth smallest) diffs ' %
-            (nr_versions - order, order))
+    print('#    %dth smallest diffs' % order)
 
 def set_argparser(parser):
     parser.add_argument('--gitdir', metavar='<dir>', default='./.git',
