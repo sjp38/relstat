@@ -254,10 +254,8 @@ def main():
         base_versions = base_version_filtered
 
     if args.dry:
-        print('base versions:')
-        print('\n'.join(base_versions))
-        print('versions:')
-        print('\n'.join(versions))
+        for idx, v in enumerate(versions):
+            print('%s..%s' % (base_versions[idx], v))
         exit(0)
 
     if not versions:
