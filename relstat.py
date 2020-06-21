@@ -148,6 +148,8 @@ def set_argparser(parser):
             help='versions to make stat')
     parser.add_argument('--versions_file', metavar='<file>',
             help='file containing the versions to make stat')
+    parser.add_argument('--base_versions', metavar='<version>', nargs='+',
+            help='versions to use as baseline of the releases')
     parser.add_argument('--since', metavar='<date (YYYY-MM-DD)>',
             help='show stat of releases since this date')
     parser.add_argument('--before', metavar='<date (YYYY-MM-DD)>',
@@ -209,6 +211,13 @@ def main():
     if not versions:
         exit()
 
+    base_versions = args.base_versions
+    if not base_versions:
+        base_versions = [versions[0]] + versions[:-1]
+    if len(base_versions) != len(versions):
+        print('len(base_versions) != len(versions)')
+        exit(1)
+
     files_to_stat = args.files_to_stat
 
     report_for = args.report_for
@@ -218,9 +227,6 @@ def main():
     print('%22s %10s %10s %10s %10s' %
             ('version', 'files', 'deletions', 'insertions', 'diff'))
     for idx, v in enumerate(versions):
-        if idx == 0:
-            continue
-
         try:
             extra_version = v.split('-')[1]
             if args.extra_version and extra_version != args.extra_version:
@@ -232,7 +238,7 @@ def main():
         if not args.report_for:
             report_for = v
 
-        stat = VersionStat(v, versions[idx - 1], files_to_stat)
+        stat = VersionStat(v, base_versions[idx], files_to_stat)
         if not args.sortby:
             stat.pr_stat(args.dateonly)
         stats_map[v] = stat
