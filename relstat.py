@@ -128,18 +128,28 @@ def get_versions(since, before):
             continue
     return versions
 
+def order_str(order):
+    last_digit = order % 10
+    if last_digit == 1:
+        return '%sst' % order
+    if last_digit == 2:
+        return '%snd' % order
+    if last_digit == 3:
+        return '%srd' % order
+    return '%sth' % order
+
 def pr_report(stat, stats):
     nr_versions = len(stats)
     print('# Among the %d releases, %s has' % (nr_versions, stat.version))
 
     order = sorted(stats, key=lambda x: x.changed_files).index(stat) + 1
-    print('#    %dth smallest file changes' % order)
+    print('#    %s smallest file changes' % order_str(order))
     order = sorted(stats, key=lambda x: x.insertions).index(stat) + 1
-    print('#    %dth smallest insertions' % order)
+    print('#    %s smallest insertions' % order_str(order))
     order = sorted(stats, key=lambda x: x.deletions).index(stat) + 1
-    print('#    %dth smallest deletions' % order)
+    print('#    %s smallest deletions' % order_str(order))
     order = sorted(stats, key=lambda x: x.diff).index(stat) + 1
-    print('#    %dth smallest diffs' % order)
+    print('#    %s smallest diffs' % order_str(order))
 
 def set_argparser(parser):
     parser.add_argument('--gitdir', metavar='<dir>', default='./.git',
