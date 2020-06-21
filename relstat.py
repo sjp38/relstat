@@ -260,6 +260,10 @@ def main():
         print('\n'.join(versions))
         exit(0)
 
+    if not versions:
+        print('no verision to stat')
+        exit(1)
+
     files_to_stat = args.files_to_stat
 
     report_for = args.report_for
