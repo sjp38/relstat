@@ -180,6 +180,8 @@ def set_argparser(parser):
     parser.add_argument('--sortby',
             choices=['files', 'deletions', 'insertions', 'diff'],
             help='sort stat with the given key')
+    parser.add_argument('--dry', action='store_true',
+            help='show the list of versions only')
 
 def main():
     global git_cmd
@@ -236,6 +238,13 @@ def main():
     if len(base_versions) != len(versions):
         print('len(base_versions) != len(versions)')
         exit(1)
+
+    if args.dry:
+        print('base versions:')
+        print('\n'.join(base_versions))
+        print('versions:')
+        print('\n'.join(versions))
+        exit(0)
 
     files_to_stat = args.files_to_stat
 
