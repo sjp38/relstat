@@ -150,6 +150,8 @@ def set_argparser(parser):
             help='file containing the versions to make stat')
     parser.add_argument('--base_versions', metavar='<version>', nargs='+',
             help='versions to use as baseline of the releases')
+    parser.add_argument('--base_versions_file', metavar='<file>',
+            help='file containing the versions to use as the baselines')
     parser.add_argument('--since', metavar='<date (YYYY-MM-DD)>',
             help='show stat of releases since this date')
     parser.add_argument('--before', metavar='<date (YYYY-MM-DD)>',
@@ -212,6 +214,13 @@ def main():
         exit()
 
     base_versions = args.base_versions
+    if not base_versions and args.base_versions_file:
+        if not os.path.exists(args.base_versions_file):
+            print('Wrong base versions file \'%s\'' % args.base_versions_file)
+            exit(1)
+        with open(args.base_versions_file, 'r') as f:
+            base_versions = [x.strip() for x in f.read().split('\n')]
+
     if not base_versions:
         base_versions = [versions[0]] + versions[:-1]
     if len(base_versions) != len(versions):
