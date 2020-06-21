@@ -239,6 +239,20 @@ def main():
         print('len(base_versions) != len(versions)')
         exit(1)
 
+    if args.extra_version:
+        version_filtered = []
+        base_version_filtered = []
+        for idx, v in enumerate(versions):
+            try:
+                extra_version = v.split('-')[1]
+                if extra_version == args.extra_version:
+                    version_filtered.append(v)
+                    base_version_filtered.append(base_versions[idx])
+            except:
+                continue
+        versions = version_filtered
+        base_versions = base_version_filtered
+
     if args.dry:
         print('base versions:')
         print('\n'.join(base_versions))
@@ -257,14 +271,6 @@ def main():
     for idx, v in enumerate(versions):
         if base_versions[idx] == v:
             continue
-
-        try:
-            extra_version = v.split('-')[1]
-            if args.extra_version and extra_version != args.extra_version:
-                continue
-        except:
-            if args.extra_version:
-                continue
 
         if not args.report_for:
             report_for = v
