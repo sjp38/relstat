@@ -236,6 +236,9 @@ def main():
     print('%22s %10s %10s %10s %10s' %
             ('version', 'files', 'deletions', 'insertions', 'diff'))
     for idx, v in enumerate(versions):
+        if base_versions[idx] == v:
+            continue
+
         try:
             extra_version = v.split('-')[1]
             if args.extra_version and extra_version != args.extra_version:
